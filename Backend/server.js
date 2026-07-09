@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Routes Placeholder imports (we will write these files next)
+// Routes
 const authRoutes = require("./routes/auth");
 const portfolioRoutes = require("./routes/portfolio");
 const aiRoutes = require("./routes/ai");
@@ -26,16 +26,20 @@ app.get("/", (req, res) => {
 
 // Database Connection
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/siga_db";
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
+// Connect to MongoDB Atlas (Async)
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
-    console.log("📥 Connected to MongoDB Atlas successfully");
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
+  .then(() => console.log("📥 Connected to MongoDB Atlas successfully"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// Start listening only when run locally (not inside Vercel serverless environment)
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
   });
+}
+
+// Export app for Vercel Serverless Function wrapper
+module.exports = app;
