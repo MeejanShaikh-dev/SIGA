@@ -112,80 +112,94 @@ ${contextPrompt}
 // @desc    Directly parse natural language and update Mongoose portfolio record autonomously
 // @access  Private
 router.post("/update-portfolio", auth, async (req, res) => {
-  const { message } = req.body;
+  const { message, history } = req.body;
+  console.log("-> Incoming AI update request, message:", message);
   if (!message) return res.status(400).json({ reply: "Message is required." });
 
   try {
     let portfolio = await Portfolio.findOne({ studentId: req.user.id });
     if (!portfolio) {
+      console.log("-> Portfolio not found for user ID:", req.user.id);
       return res.status(404).json({ reply: "Portfolio not found. Please complete your profile wizard first." });
     }
 
     const systemPrompt = `
 You are an expert MERN database parser assistant.
-The user wants to add/update an item in their portfolio based on their natural language message: "${message}".
+The user wants to add/update an item in their portfolio.
 
-Based on their message, determine which section of their portfolio is being described:
-- "academics": updates SGPA, CGPA, year, semester, or attendance.
-- "projects": adds a project (fields: title, techStack, description, githubLink, liveUrl, pdfUrl, semester).
-- "hackathons": adds a hackathon (fields: name, role, achievement, projectTitle, pdfUrl, semester).
-- "research": adds a research paper (fields: title, journal, status, link, pdfUrl, semester).
-- "internships": adds an internship (fields: company, role, duration, description, pdfUrl, semester).
-- "certificates": adds a certificate (fields: title, issuer, credentialId, credentialUrl, pdfUrl, semester).
-- "achievements": adds an achievement (fields: title, description, date, pdfUrl, semester).
+For items like projects, hackathons, research, internships, certificates, and achievements, you require the following fields to make a complete record:
+- "techStack" (e.g. React, Node.js, C++)
+- "description" (what the project or work does)
+- "semester" (e.g. Sem 4, Sem 3)
+- "pdfUrl" (PDF link or image URL: accepts .png, .jpg, .jpeg, .pdf)
+- "githubLink" (GitHub profile or project link)
 
-You must respond with a JSON object ONLY, in this exact format:
+If the user's message or the conversation history is missing any of these details for the new item they want to add (e.g., they just said "add microcontroller project" but did not specify techStack, description, semester, PDF link, or githubLink), you must respond in Format A to request the missing fields.
+Only respond in Format B to save the item once you have collected all these details (or the user explicitly says they do not have them or want to skip them).
+
+Your response must always be a JSON object in one of these two formats:
+
+Format A (If details like techStack, description, semester, pdfUrl, githubLink are missing):
 {
+  "status": "need_more_info",
+  "reply": "A polite message stating you will add the item, and asking for the missing fields: Tech Stack, Description, Semester, PDF/Image link, and GitHub link."
+}
+
+Format B (If you have all details or the user skipped them):
+{
+  "status": "save",
   "section": "projects" | "hackathons" | "research" | "internships" | "certificates" | "achievements" | "academics",
-  "data": { ... fields for that section ... },
-  "explanation": "A friendly confirmation sentence explaining what you parsed and will add/update."
-}
-
-Example 1: "I got a 9.2 CGPA in Sem 4"
-Response:
-{
-  "section": "academics",
-  "data": { "cgpa": 9.2, "semester": "Sem 4" },
-  "explanation": "Updated your cumulative CGPA to 9.2 for Semester 4."
-}
-
-Example 2: "I won first place at Smart India Hackathon for a disaster alert system"
-Response:
-{
-  "section": "hackathons",
-  "data": { "name": "Smart India Hackathon", "achievement": "First Place", "projectTitle": "Disaster Alert System" },
-  "explanation": "Added your First Place achievement at the Smart India Hackathon for the 'Disaster Alert System' project."
-}
-
-Example 3: "I completed a ML Internship at Google for 3 months where I worked on NLP algorithms"
-Response:
-{
-  "section": "internships",
-  "data": { "company": "Google", "role": "ML Intern", "duration": "3 Months", "description": "Worked on NLP algorithms." },
-  "explanation": "Added your ML Intern position at Google with a duration of 3 Months."
+  "data": { ... fields ... },
+  "explanation": "A friendly confirmation sentence explaining what was added."
 }
 
 Ensure your response is valid JSON and contains only these fields. Do not include markdown codeblocks or extra text.
 `;
 
+    // Construct message history for Groq to maintain conversational state
+    const groqMessages = [
+      { role: "system", content: systemPrompt }
+    ];
+
+    if (history && Array.isArray(history)) {
+      history.forEach(h => {
+        // Map sender to role (ai -> assistant, user -> user)
+        groqMessages.push({
+          role: h.sender === "ai" ? "assistant" : "user",
+          content: h.text
+        });
+      });
+    }
+
+    // Append the current message
+    groqMessages.push({ role: "user", content: message });
+
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ],
+      messages: groqMessages,
       response_format: { type: "json_object" }
     });
 
     let cleanedContent = completion.choices[0].message.content.trim();
+    console.log("-> Cleaned Groq response:", cleanedContent);
     if (cleanedContent.startsWith("```")) {
       cleanedContent = cleanedContent.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
     }
 
     const result = JSON.parse(cleanedContent);
+    console.log("-> Parsed result:", result);
+    
+    if (result.status === "need_more_info") {
+      return res.json({
+        reply: result.reply,
+        status: "need_more_info"
+      });
+    }
+
     const { section, data, explanation } = result;
 
     if (!section || !data) {
+      console.log("-> Missing section or data keys!");
       return res.status(422).json({ reply: "Could not parse details from your message. Please specify the name/details of your project, internship, or score." });
     }
 
@@ -206,6 +220,7 @@ Ensure your response is valid JSON and contains only these fields. Do not includ
 
     res.json({
       reply: `🚀 **Success!** ${explanation} \n\nYour portfolio metrics have been recalculated and updated automatically.`,
+      status: "save",
       portfolio
     });
   } catch (err) {

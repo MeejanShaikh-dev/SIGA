@@ -174,7 +174,7 @@ export default function StudentDashboard({ user, token, onLogout }) {
     try {
       const res = await axios.post(
         `${API_URL}/api/ai/update-portfolio`,
-        { message: userMsg },
+        { message: userMsg, history: aiChatMessages },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -823,18 +823,28 @@ export default function StudentDashboard({ user, token, onLogout }) {
               </div>
             )}
 
-            {/* PDF ATTACHMENT SECTION */}
+            {/* PDF OR IMAGE ATTACHMENT SECTION */}
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "16px" }}>
-              <strong style={{ color: "#94a3b8", display: "block", marginBottom: "12px" }}>Attached Document / Verification PDF:</strong>
+              <strong style={{ color: "#94a3b8", display: "block", marginBottom: "12px" }}>Attached Document / Verification PDF / Image:</strong>
               {selectedItem.pdfUrl ? (
                 <div style={{ borderRadius: "10px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <iframe 
-                    src={selectedItem.pdfUrl} 
-                    title="Verification PDF Preview" 
-                    style={{ width: "100%", height: "240px", background: "white", border: "none" }}
-                  />
+                  {(selectedItem.pdfUrl.match(/\.(png|jpg|jpeg|webp|gif)/i) || selectedItem.pdfUrl.startsWith("data:image")) ? (
+                    <img 
+                      src={selectedItem.pdfUrl} 
+                      alt="Verification Attachment" 
+                      style={{ width: "100%", maxHeight: "300px", objectFit: "contain", background: "#0f172a", display: "block", padding: "10px" }}
+                    />
+                  ) : (
+                    <iframe 
+                      src={selectedItem.pdfUrl} 
+                      title="Verification PDF Preview" 
+                      style={{ width: "100%", height: "240px", background: "white", border: "none" }}
+                    />
+                  )}
                   <div style={{ padding: "10px", background: "rgba(15,23,42,0.4)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: "12px", color: "#94a3b8" }}>Embedded PDF Preview</span>
+                    <span style={{ fontSize: "12px", color: "#94a3b8" }}>
+                      {(selectedItem.pdfUrl.match(/\.(png|jpg|jpeg|webp|gif)/i) || selectedItem.pdfUrl.startsWith("data:image")) ? "Image Attachment Preview" : "Embedded PDF Preview"}
+                    </span>
                     <a href={selectedItem.pdfUrl} target="_blank" rel="noreferrer" style={{ fontSize: "12px", color: "#38bdf8", fontWeight: "600", textDecoration: "none" }}>
                       <i className="fas fa-external-link-alt" style={{ marginRight: "4px" }}></i> Open in New Tab
                     </a>
@@ -843,7 +853,7 @@ export default function StudentDashboard({ user, token, onLogout }) {
               ) : (
                 <div style={{ background: "rgba(255,255,255,0.03)", padding: "20px", borderRadius: "10px", textAlign: "center", border: "1px dashed rgba(255,255,255,0.1)", color: "#94a3b8", fontSize: "14px" }}>
                   <i className="far fa-file-pdf" style={{ fontSize: "28px", display: "block", marginBottom: "8px" }}></i>
-                  No PDF attachment provided for verification. Click "Update Portfolio" to add a document link.
+                  No document or image attachment provided.
                 </div>
               )}
             </div>
