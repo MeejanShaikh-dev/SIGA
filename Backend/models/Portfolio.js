@@ -97,7 +97,9 @@ const PortfolioSchema = new mongoose.Schema(
       startupName: { type: String, default: "" },
       startupIdea: { type: String, default: "" },
       startupStage: { type: String, default: "" }, // Ideation, MVP, Incubation, Scaling
-      startupCategory: { type: String, default: "" }
+      startupCategory: { type: String, default: "" },
+      pitchDeckUrl: { type: String, default: "" },
+      incubationRegistered: { type: Boolean, default: false }
     },
     placementInfo: {
       placementStatus: { type: String, enum: ["Placed", "Unplaced", "Higher Studies", "Entrepreneurship"], default: "Unplaced" },

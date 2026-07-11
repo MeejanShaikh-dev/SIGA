@@ -4,20 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import RadarChart from "../components/RadarChart";
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from "chart.js";
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+import ThreeGrowthChart from "../components/ThreeGrowthChart";
 
 export default function StudentDashboard({ user, token, onLogout }) {
   const [portfolio, setPortfolio] = useState(null);
@@ -31,12 +18,24 @@ export default function StudentDashboard({ user, token, onLogout }) {
   const [itemType, setItemType] = useState("");
   const [showDetailModal, setShowDetailModal] = useState(false);
 
+  // Startup Action Modal States
+  const [showPitchDeckModal, setShowPitchDeckModal] = useState(false);
+  const [pitchDeckUrlInput, setPitchDeckUrlInput] = useState("");
+  
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [meetingTopic, setMeetingTopic] = useState("Incubation Mentoring Session");
+  const [meetingDate, setMeetingDate] = useState("");
+  const [meetingTime, setMeetingTime] = useState("");
+
   const fetchPortfolio = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/portfolio/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPortfolio(res.data);
+      if (res.data?.startupInfo?.pitchDeckUrl) {
+        setPitchDeckUrlInput(res.data.startupInfo.pitchDeckUrl);
+      }
     } catch (err) {
       console.error("Error loading portfolio:", err);
     } finally {
@@ -102,6 +101,57 @@ export default function StudentDashboard({ user, token, onLogout }) {
     );
   };
 
+  // Startup Actions Logic
+  const handleRegisterIncubator = async () => {
+    try {
+      const updatedStartup = {
+        ...portfolio.startupInfo,
+        incubationRegistered: true
+      };
+      await axios.post(
+        `${API_URL}/api/portfolio/save`,
+        { startupInfo: updatedStartup },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Incubator Registration request sent to JSPM University Incubation Cell!");
+      fetchPortfolio();
+    } catch (err) {
+      console.error(err);
+      alert("Registration failed. Please try again.");
+    }
+  };
+
+  const handleSavePitchDeck = async (e) => {
+    e.preventDefault();
+    try {
+      const updatedStartup = {
+        ...portfolio.startupInfo,
+        pitchDeckUrl: pitchDeckUrlInput
+      };
+      await axios.post(
+        `${API_URL}/api/portfolio/save`,
+        { startupInfo: updatedStartup },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Pitch Deck URL updated successfully!");
+      setShowPitchDeckModal(false);
+      fetchPortfolio();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save Pitch Deck URL.");
+    }
+  };
+
+  const handleSubmitMeeting = (e) => {
+    e.preventDefault();
+    if (!meetingDate || !meetingTime) {
+      alert("Please select a date and time.");
+      return;
+    }
+    alert(`Meeting request submitted successfully! Your mentor Prof. Sunita Deshmukh has been notified for your presentation on ${meetingDate} at ${meetingTime}.`);
+    setShowMeetingModal(false);
+  };
+
   if (loading) {
     return (
       <div className="loading-screen" style={{ color: "#fff", display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#0f172a" }}>
@@ -150,38 +200,6 @@ export default function StudentDashboard({ user, token, onLogout }) {
     setSelectedItem(item);
     setItemType(type);
     setShowDetailModal(true);
-  };
-
-  // Compile growth data from s1-s6 for ChartJS
-  const semScores = portfolio?.semesterScores || { s1: 30, s2: 45, s3: 60, s4: 75, s5: 85, s6: 90 };
-  const growthData = {
-    labels: ["Semester 1", "Semester 2", "Semester 3", "Semester 4", "Semester 5", "Semester 6"],
-    datasets: [
-      {
-        label: "Innovation Growth Trend",
-        data: [semScores.s1, semScores.s2, semScores.s3, semScores.s4, semScores.s5, semScores.s6],
-        borderColor: "#38bdf8",
-        backgroundColor: "rgba(56, 189, 248, 0.1)",
-        tension: 0.4,
-        fill: true,
-        pointBackgroundColor: "#818cf8",
-        pointBorderColor: "#fff",
-        pointRadius: 6,
-        borderWidth: 3,
-      }
-    ]
-  };
-
-  const growthOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false }
-    },
-    scales: {
-      x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#94a3b8" } },
-      y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#94a3b8" }, min: 0, max: 100 }
-    }
   };
 
   // Check if 30 days passed since last update
@@ -403,17 +421,18 @@ export default function StudentDashboard({ user, token, onLogout }) {
             </div>
           </div>
 
-          {/* CHARTS ROW */}
+          {/* CHARTS ROW (Restored 3D Chart) */}
           <div className="charts-row">
             <div className="chart-card wide" style={{ minWidth: "0" }}>
               <div className="card-header">
                 <h3>
-                  <i className="fas fa-chart-line" style={{ color: "#38bdf8", marginRight: "8px" }}></i>
-                  Semester Innovation Growth Graph (Sem 1 to recent)
+                  <i className="fas fa-chart-line" style={{ color: "var(--purple)", marginRight: "8px" }}></i>
+                  Semester Growth (3D)
                 </h3>
+                <span className="badge">Innovation Score</span>
               </div>
-              <div style={{ height: "300px", padding: "10px" }}>
-                <Line data={growthData} options={growthOptions} />
+              <div style={{ height: "320px" }}>
+                <ThreeGrowthChart semesterScores={portfolio?.semesterScores} />
               </div>
             </div>
 
@@ -536,7 +555,7 @@ export default function StudentDashboard({ user, token, onLogout }) {
             </div>
           </div>
 
-          {/* STARTUP QUICK ACTIONS (Only shows if student has startup) */}
+          {/* STARTUP QUICK ACTIONS (Active Incubation Actions) */}
           {portfolio?.startupInfo?.hasStartup && (
             <div className="chart-card full" style={{ marginBottom: "28px", border: "1px solid rgba(251,146,60,0.2)" }}>
               <div className="card-header">
@@ -547,18 +566,29 @@ export default function StudentDashboard({ user, token, onLogout }) {
                 <span className="badge" style={{ background: "rgba(251,146,60,0.1)", color: "#fb923c" }}>Incubation Stage</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
-                <button className="btn-secondary" onClick={() => alert("Registration request sent to JSPM University Incubation Cell!")} style={{ background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)", color: "#fb923c", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
-                  <i className="fas fa-id-card"></i> Register Incubator
+                
+                {portfolio.startupInfo.incubationRegistered ? (
+                  <button className="btn-secondary" disabled style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#10b981", padding: "12px", borderRadius: "8px", cursor: "default", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
+                    <i className="fas fa-check-circle"></i> Incubator Registered
+                  </button>
+                ) : (
+                  <button className="btn-secondary" onClick={handleRegisterIncubator} style={{ background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)", color: "#fb923c", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
+                    <i className="fas fa-id-card"></i> Register Incubator
+                  </button>
+                )}
+
+                <button className="btn-secondary" onClick={() => { setPitchDeckUrlInput(portfolio.startupInfo.pitchDeckUrl || ""); setShowPitchDeckModal(true); }} style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)", color: "#38bdf8", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
+                  <i className="fas fa-file-powerpoint"></i> {portfolio.startupInfo.pitchDeckUrl ? "Update Pitch Deck" : "Upload Pitch Deck"}
                 </button>
-                <button className="btn-secondary" onClick={() => alert("Opening Pitch Deck update terminal...")} style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)", color: "#38bdf8", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
-                  <i className="fas fa-file-powerpoint"></i> Update Pitch Deck
-                </button>
-                <button className="btn-secondary" onClick={() => alert("Meeting request with Incubation Director submitted.")} style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
+
+                <button className="btn-secondary" onClick={() => setShowMeetingModal(true)} style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
                   <i className="fas fa-handshake"></i> Request Mentor Meeting
                 </button>
-                <button className="btn-secondary" onClick={() => alert("Redirecting to IP Patent Filing Center...")} style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
+
+                <button className="btn-secondary" onClick={() => handleAction("achievements")} style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", padding: "12px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: "600" }}>
                   <i className="fas fa-file-signature"></i> Add Patent / IP
                 </button>
+
               </div>
             </div>
           )}
@@ -588,6 +618,85 @@ export default function StudentDashboard({ user, token, onLogout }) {
           </div>
         </main>
       </div>
+
+      {/* PITCH DECK UPDATE MODAL */}
+      {showPitchDeckModal && (
+        <div className="modal-overlay" onClick={() => setShowPitchDeckModal(false)} style={{ position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh", background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999 }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", width: "90%", maxWidth: "500px", padding: "28px", color: "white" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "16px", marginBottom: "20px" }}>
+              <h3>Upload Pitch Deck URL</h3>
+              <button onClick={() => setShowPitchDeckModal(false)} style={{ background: "transparent", border: "none", color: "#64748b", fontSize: "24px", cursor: "pointer" }}>&times;</button>
+            </div>
+            <form onSubmit={handleSavePitchDeck}>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: "#94a3b8" }}>Pitch Deck Link (Google Slides, Canva, etc.)</label>
+                <input 
+                  type="text" 
+                  value={pitchDeckUrlInput} 
+                  onChange={(e) => setPitchDeckUrlInput(e.target.value)} 
+                  placeholder="https://docs.google.com/presentation/d/.../edit" 
+                  style={{ width: "100%", background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "10px", color: "white", outline: "none" }}
+                  required 
+                />
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <button type="button" onClick={() => setShowPitchDeckModal(false)} style={{ padding: "8px 16px", background: "rgba(255,255,255,0.05)", border: "none", color: "white", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
+                <button type="submit" style={{ padding: "8px 16px", background: "#38bdf8", border: "none", color: "#0f172a", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>Save URL</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* REQUEST MENTOR MEETING MODAL */}
+      {showMeetingModal && (
+        <div className="modal-overlay" onClick={() => setShowMeetingModal(false)} style={{ position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh", background: "rgba(15,23,42,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999 }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", width: "90%", maxWidth: "500px", padding: "28px", color: "white" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "16px", marginBottom: "20px" }}>
+              <h3>Schedule Mentor Pitch Practice</h3>
+              <button onClick={() => setShowMeetingModal(false)} style={{ background: "transparent", border: "none", color: "#64748b", fontSize: "24px", cursor: "pointer" }}>&times;</button>
+            </div>
+            <form onSubmit={handleSubmitMeeting}>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: "#94a3b8" }}>Meeting Topic</label>
+                <input 
+                  type="text" 
+                  value={meetingTopic} 
+                  onChange={(e) => setMeetingTopic(e.target.value)} 
+                  style={{ width: "100%", background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "10px", color: "white", outline: "none" }}
+                  required 
+                />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+                <div>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: "#94a3b8" }}>Preferred Date</label>
+                  <input 
+                    type="date" 
+                    value={meetingDate} 
+                    onChange={(e) => setMeetingDate(e.target.value)} 
+                    style={{ width: "100%", background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "10px", color: "white", outline: "none" }}
+                    required 
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: "#94a3b8" }}>Preferred Time</label>
+                  <input 
+                    type="time" 
+                    value={meetingTime} 
+                    onChange={(e) => setMeetingTime(e.target.value)} 
+                    style={{ width: "100%", background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "10px", color: "white", outline: "none" }}
+                    required 
+                  />
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <button type="button" onClick={() => setShowMeetingModal(false)} style={{ padding: "8px 16px", background: "rgba(255,255,255,0.05)", border: "none", color: "white", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
+                <button type="submit" style={{ padding: "8px 16px", background: "#10b981", border: "none", color: "#0f172a", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>Send Request</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* RECORD DETAIL & PDF MODAL */}
       {showDetailModal && selectedItem && (
