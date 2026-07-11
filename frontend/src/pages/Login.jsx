@@ -11,10 +11,18 @@ export default function Login({ onLoginSuccess }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Signup states
+  const [isSignup, setIsSignup] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [department, setDepartment] = useState("");
+  const [semester, setSemester] = useState("Sem 4");
+
   const navigate = useNavigate();
 
   const handleRoleChange = (role) => {
     setSelectedRole(role);
+    setIsSignup(false); // Reset to login mode when switching roles
     setError("");
   };
 
@@ -29,7 +37,6 @@ export default function Login({ onLoginSuccess }) {
     setError("");
 
     try {
-      // Connect to MERN auth endpoint
       const res = await axios.post(`${API_URL}/api/auth/login`, {
         username,
         password,
@@ -37,7 +44,6 @@ export default function Login({ onLoginSuccess }) {
 
       const { token, user } = res.data;
 
-      // Verify that user role matches chosen role (safety check)
       if (user.role !== selectedRole) {
         setError(`This credential belongs to a ${user.role}. Please select the correct tab.`);
         setLoading(false);
@@ -46,9 +52,7 @@ export default function Login({ onLoginSuccess }) {
 
       onLoginSuccess(user, token);
 
-      // Routing logic
       if (user.role === "student") {
-        // Fetch portfolio to check if completed
         try {
           const portRes = await axios.get(`${API_URL}/api/portfolio/my`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -72,6 +76,46 @@ export default function Login({ onLoginSuccess }) {
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.msg || "Authentication failed. Check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    if (!username || !password || !fullName) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+
+    // Validate college-affiliated email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username)) {
+      setError("Please enter a valid college email address (e.g. name@jspm.edu.in)");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await axios.post(`${API_URL}/api/auth/register`, {
+        username,
+        password,
+        role: "student",
+        fullName,
+        department,
+        semester,
+      });
+
+      const { token, user } = res.data;
+      onLoginSuccess(user, token);
+      
+      // Redirect new students to the Portfolio Wizard to complete profile
+      navigate("/student-wizard");
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.msg || "Registration failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -117,59 +161,107 @@ export default function Login({ onLoginSuccess }) {
           </div>
         </div>
 
-        {/* RIGHT LOGIN CARD */}
+        {/* RIGHT LOGIN / SIGNUP CARD */}
         <div className="right">
           <div className="login-card">
             <div className="brand-header">
               <p className="university-name">JSPM UNIVERSITY</p>
               <h2>
-                {selectedRole === "student" && "Student Login"}
-                {selectedRole === "faculty" && "Faculty Login"}
-                {selectedRole === "hod" && "HOD Login"}
-                {selectedRole === "admin" && "Admin Login"}
+                {isSignup 
+                  ? "Student Registration" 
+                  : `${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Login`
+                }
               </h2>
               <p className="subtitle">
-                {selectedRole === "student" && "Login using your PRN"}
-                {selectedRole === "faculty" && "Login using Employee ID"}
-                {selectedRole === "hod" && "Head of Department Login"}
-                {selectedRole === "admin" && "System Administrator Login"}
+                {isSignup 
+                  ? "Create a new student account using your college email" 
+                  : selectedRole === "student" 
+                    ? "Login using your PRN or email" 
+                    : selectedRole === "admin"
+                      ? "System Administrator Login"
+                      : `${selectedRole.toUpperCase()} Login`
+                }
               </p>
             </div>
 
-            <div className="roles">
-              <div className={`role ${selectedRole === "student" ? "active" : ""}`} onClick={() => handleRoleChange("student")}>
-                <i className="fa-solid fa-user-graduate"></i> Student
+            {/* Role Tabs - Only visible in Login Mode */}
+            {!isSignup && (
+              <div className="roles">
+                <div className={`role ${selectedRole === "student" ? "active" : ""}`} onClick={() => handleRoleChange("student")}>
+                  <i className="fa-solid fa-user-graduate"></i> Student
+                </div>
+                <div className={`role ${selectedRole === "faculty" ? "active" : ""}`} onClick={() => handleRoleChange("faculty")}>
+                  <i className="fa-solid fa-chalkboard-user"></i> Faculty
+                </div>
+                <div className={`role ${selectedRole === "hod" ? "active" : ""}`} onClick={() => handleRoleChange("hod")}>
+                  <i className="fa-solid fa-building-columns"></i> HOD
+                </div>
+                <div className={`role ${selectedRole === "admin" ? "active" : ""}`} onClick={() => handleRoleChange("admin")}>
+                  <i className="fa-solid fa-user-shield"></i> Admin
+                </div>
               </div>
-              <div className={`role ${selectedRole === "faculty" ? "active" : ""}`} onClick={() => handleRoleChange("faculty")}>
-                <i className="fa-solid fa-chalkboard-user"></i> Faculty
-              </div>
-              <div className={`role ${selectedRole === "hod" ? "active" : ""}`} onClick={() => handleRoleChange("hod")}>
-                <i className="fa-solid fa-building-columns"></i> HOD
-              </div>
-              <div className={`role ${selectedRole === "admin" ? "active" : ""}`} onClick={() => handleRoleChange("admin")}>
-                <i className="fa-solid fa-user-shield"></i> Admin
-              </div>
-            </div>
+            )}
 
             {error && <div className="error-alert" style={{ color: "#FF6B6B", marginBottom: "16px", fontSize: "14px", fontWeight: "600" }}>{error}</div>}
 
-            <form onSubmit={handleLogin}>
+            <form onSubmit={isSignup ? handleSignup : handleLogin}>
+              {isSignup && (
+                <div className="input-box">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="E.g. Rahul Patil"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
               <div className="input-box">
-                <label>User ID</label>
+                <label>{isSignup ? "College Email" : "User ID / Email"}</label>
                 <input
                   type="text"
-                  placeholder={
-                    selectedRole === "student"
-                      ? "PRN (e.g. 241001)"
+                  placeholder={isSignup 
+                    ? "E.g. rahul.patil@jspm.edu.in" 
+                    : selectedRole === "student"
+                      ? "PRN or College Email"
                       : selectedRole === "admin"
-                      ? "Admin Username (e.g. admin)"
-                      : "Employee ID (e.g. faculty)"
+                        ? "Admin Username"
+                        : "Employee ID"
                   }
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>
+
+              {isSignup && (
+                <>
+                  <div className="input-box">
+                    <label>Department</label>
+                    <input
+                      type="text"
+                      placeholder="E.g. AI & ML"
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                    />
+                  </div>
+                  <div className="input-box">
+                    <label>Semester</label>
+                    <select value={semester} onChange={(e) => setSemester(e.target.value)}>
+                      <option value="Sem 1">Semester 1</option>
+                      <option value="Sem 2">Semester 2</option>
+                      <option value="Sem 3">Semester 3</option>
+                      <option value="Sem 4">Semester 4</option>
+                      <option value="Sem 5">Semester 5</option>
+                      <option value="Sem 6">Semester 6</option>
+                      <option value="Sem 7">Semester 7</option>
+                      <option value="Sem 8">Semester 8</option>
+                    </select>
+                  </div>
+                </>
+              )}
 
               <div className="input-box">
                 <label>Password</label>
@@ -189,16 +281,44 @@ export default function Login({ onLoginSuccess }) {
                 </div>
               </div>
 
-              <div className="remember">
-                <label>
-                  <input type="checkbox" style={{ marginRight: "6px" }} /> Remember me
-                </label>
-                <a href="#forgot" onClick={(e) => e.preventDefault()}>Forgot Password?</a>
-              </div>
+              {!isSignup && (
+                <div className="remember">
+                  <label>
+                    <input type="checkbox" style={{ marginRight: "6px" }} /> Remember me
+                  </label>
+                  <a href="#forgot" onClick={(e) => e.preventDefault()}>Forgot Password?</a>
+                </div>
+              )}
 
               <button className="login-btn" type="submit" disabled={loading}>
-                {loading ? "Authenticating..." : "Login"}
+                {loading 
+                  ? "Processing..." 
+                  : isSignup 
+                    ? "Register & Sign Up" 
+                    : "Login"
+                }
               </button>
+
+              {/* Signup toggles - only for Student role */}
+              {selectedRole === "student" && (
+                <div style={{ textAlign: "center", marginTop: "16px", fontSize: "14px" }}>
+                  {isSignup ? (
+                    <span style={{ color: "#cbd5e1" }}>
+                      Already have an account?{" "}
+                      <a href="#login" onClick={(e) => { e.preventDefault(); setIsSignup(false); setError(""); }} style={{ color: "#38bdf8", fontWeight: "600", textDecoration: "none" }}>
+                        Log in here
+                      </a>
+                    </span>
+                  ) : (
+                    <span style={{ color: "#cbd5e1" }}>
+                      New Student?{" "}
+                      <a href="#signup" onClick={(e) => { e.preventDefault(); setIsSignup(true); setError(""); }} style={{ color: "#38bdf8", fontWeight: "600", textDecoration: "none" }}>
+                        Create an account
+                      </a>
+                    </span>
+                  )}
+                </div>
+              )}
             </form>
 
             <div className="footer">Innovation Starts Here 🚀</div>

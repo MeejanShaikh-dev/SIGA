@@ -41,9 +41,19 @@ export default function StudentWizard({ user, token, onLogout }) {
     email: "", phone: "", division: "", dob: "", gender: "Male",
     linkedIn: "", gitHub: "", portfolioWebsite: ""
   });
+  
   const [academics, setAcademics] = useState({
     sgpa: 0, cgpa: 0, attendance: 0, backlogs: 0, creditsEarned: 0, creditsRemaining: 0,
     year: "First Year", semester: "Sem 1"
+  });
+
+  // Startup State
+  const [startupInfo, setStartupInfo] = useState({
+    hasStartup: false,
+    startupName: "",
+    startupIdea: "",
+    startupStage: "Ideation",
+    startupCategory: ""
   });
 
   const [projects, setProjects] = useState([]);
@@ -74,6 +84,7 @@ export default function StudentWizard({ user, token, onLogout }) {
           if (p.internships) setInternships(p.internships);
           if (p.certificates) setCertificates(p.certificates);
           if (p.achievements) setAchievements(p.achievements);
+          if (p.startupInfo) setStartupInfo({ ...startupInfo, ...p.startupInfo });
         }
       } catch (err) {
         console.error("Error fetching portfolio:", err);
@@ -117,6 +128,7 @@ export default function StudentWizard({ user, token, onLogout }) {
         internships,
         certificates,
         achievements,
+        startupInfo,
       };
 
       await axios.post(`${API_URL}/api/portfolio/save`, payload, {
@@ -180,7 +192,7 @@ export default function StudentWizard({ user, token, onLogout }) {
           {/* PROGRESS HEADER */}
           <header className="topbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <div>
-              <h1 style={{ fontSize: "24px", fontWeight: "700" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#38bdf8" }}>
                 <i className={stepsList[currentStep].icon} style={{ marginRight: "12px", color: "var(--purple)" }}></i>
                 {stepsList[currentStep].title}
               </h1>
@@ -190,7 +202,7 @@ export default function StudentWizard({ user, token, onLogout }) {
 
           {/* PROGRESS BAR */}
           <div className="progress-container" style={{ background: "rgba(255,255,255,0.06)", height: "6px", borderRadius: "3px", marginBottom: "32px", overflow: "hidden" }}>
-            <div className="progress-fill" style={{ background: "linear-gradient(90deg, var(--purple), var(--cyan))", width: `${completionPercent}%`, height: "100%", transition: "width 0.3s ease" }} />
+            <div className="progress-fill" style={{ background: "linear-gradient(90deg, #818cf8, #38bdf8)", width: `${completionPercent}%`, height: "100%", transition: "width 0.3s ease" }} />
           </div>
 
           {/* STEP VIEWS */}
@@ -201,7 +213,7 @@ export default function StudentWizard({ user, token, onLogout }) {
               <div className="form-card">
                 <div className="form-card-body">
                   
-                  {/* STEP 1: Personal Info */}
+                  {/* STEP 1: Personal Info & Startup Details */}
                   {currentStep === 0 && (
                     <div className="form-step">
                       <div className="form-row two-col" style={{ marginBottom: "16px" }}>
@@ -237,6 +249,46 @@ export default function StudentWizard({ user, token, onLogout }) {
                           <label>GitHub Profile</label>
                           <input type="text" value={personalInfo.gitHub} onChange={(e) => setPersonalInfo({ ...personalInfo, gitHub: e.target.value })} />
                         </div>
+                      </div>
+
+                      {/* STARTUP DETAILS SECTION */}
+                      <div style={{ marginTop: "24px", borderTop: "1px solid var(--border)", paddingTop: "20px" }}>
+                        <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#38bdf8", marginBottom: "16px" }}>Startup & Incubation Profile</h3>
+                        <div className="form-row" style={{ marginBottom: "16px" }}>
+                          <label style={{ display: "flex", alignItems: "center", cursor: "pointer", gap: "8px" }}>
+                            <input type="checkbox" checked={startupInfo.hasStartup} onChange={(e) => setStartupInfo({ ...startupInfo, hasStartup: e.target.checked })} style={{ width: "18px", height: "18px" }} />
+                            <span>I have a startup / entrepreneurship prototype</span>
+                          </label>
+                        </div>
+                        {startupInfo.hasStartup && (
+                          <>
+                            <div className="form-row two-col" style={{ marginBottom: "16px" }}>
+                              <div className="form-row">
+                                <label>Startup / Idea Name</label>
+                                <input type="text" value={startupInfo.startupName} onChange={(e) => setStartupInfo({ ...startupInfo, startupName: e.target.value })} placeholder="E.g. AgriTech AI" />
+                              </div>
+                              <div className="form-row">
+                                <label>Startup Category</label>
+                                <input type="text" value={startupInfo.startupCategory} onChange={(e) => setStartupInfo({ ...startupInfo, startupCategory: e.target.value })} placeholder="E.g. Agriculture, Fintech" />
+                              </div>
+                            </div>
+                            <div className="form-row two-col" style={{ marginBottom: "16px" }}>
+                              <div className="form-row">
+                                <label>Current Stage</label>
+                                <select value={startupInfo.startupStage} onChange={(e) => setStartupInfo({ ...startupInfo, startupStage: e.target.value })}>
+                                  <option value="Ideation">Ideation / Research</option>
+                                  <option value="MVP">Prototype / MVP</option>
+                                  <option value="Incubation">Incubation / Acceleration</option>
+                                  <option value="Scaling">Market Entry / Scaling</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="form-row" style={{ marginBottom: "16px" }}>
+                              <label>Startup Pitch / Brief Idea</label>
+                              <textarea rows="3" value={startupInfo.startupIdea} onChange={(e) => setStartupInfo({ ...startupInfo, startupIdea: e.target.value })} placeholder="Describe your product idea, target audience, and progress..." />
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -294,7 +346,7 @@ export default function StudentWizard({ user, token, onLogout }) {
                     <div className="form-step">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                         <h3 style={{ fontSize: "14px", color: "var(--purple)" }}>My Added Projects</h3>
-                        <button className="btn-primary" onClick={() => addItem(projects, setProjects, { title: "", techStack: "", description: "", githubLink: "" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
+                        <button className="btn-primary" onClick={() => addItem(projects, setProjects, { title: "", techStack: "", description: "", githubLink: "", pdfUrl: "", semester: "Sem 4" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
                           <i className="fas fa-plus" style={{ marginRight: "6px" }}></i> Add Project Card
                         </button>
                       </div>
@@ -313,6 +365,25 @@ export default function StudentWizard({ user, token, onLogout }) {
                           <div className="form-row" style={{ marginBottom: "12px" }}>
                             <label>Description</label>
                             <textarea rows="2" value={p.description} onChange={(e) => handleItemChange(projects, setProjects, idx, "description", e.target.value)} />
+                          </div>
+                          <div className="form-row two-col" style={{ marginBottom: "12px" }}>
+                            <div className="form-row">
+                              <label>Semester</label>
+                              <select value={p.semester || "Sem 4"} onChange={(e) => handleItemChange(projects, setProjects, idx, "semester", e.target.value)}>
+                                <option value="Sem 1">Semester 1</option>
+                                <option value="Sem 2">Semester 2</option>
+                                <option value="Sem 3">Semester 3</option>
+                                <option value="Sem 4">Semester 4</option>
+                                <option value="Sem 5">Semester 5</option>
+                                <option value="Sem 6">Semester 6</option>
+                                <option value="Sem 7">Semester 7</option>
+                                <option value="Sem 8">Semester 8</option>
+                              </select>
+                            </div>
+                            <div className="form-row">
+                              <label>PDF Attachment Link (URL)</label>
+                              <input type="text" value={p.pdfUrl || ""} onChange={(e) => handleItemChange(projects, setProjects, idx, "pdfUrl", e.target.value)} placeholder="https://example.com/project-report.pdf" />
+                            </div>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div className="form-row" style={{ width: "80%" }}>
@@ -333,7 +404,7 @@ export default function StudentWizard({ user, token, onLogout }) {
                     <div className="form-step">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                         <h3 style={{ fontSize: "14px", color: "var(--purple)" }}>My Hackathons</h3>
-                        <button className="btn-primary" onClick={() => addItem(hackathons, setHackathons, { name: "", role: "", achievement: "", projectTitle: "" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
+                        <button className="btn-primary" onClick={() => addItem(hackathons, setHackathons, { name: "", role: "", achievement: "", projectTitle: "", pdfUrl: "", semester: "Sem 4" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
                           <i className="fas fa-plus" style={{ marginRight: "6px" }}></i> Add Hackathon Card
                         </button>
                       </div>
@@ -351,12 +422,31 @@ export default function StudentWizard({ user, token, onLogout }) {
                           </div>
                           <div className="form-row two-col" style={{ marginBottom: "12px" }}>
                             <div className="form-row">
-                              <label>Achievement (e.g. Winner, Participant)</label>
-                              <input type="text" value={h.achievement} onChange={(e) => handleItemChange(hackathons, setHackathons, idx, "achievement", e.target.value)} />
+                              <label>Achievement</label>
+                              <input type="text" value={h.achievement} onChange={(e) => handleItemChange(hackathons, setHackathons, idx, "achievement", e.target.value)} placeholder="e.g. Winner, Participant" />
                             </div>
                             <div className="form-row">
                               <label>Project Title built</label>
                               <input type="text" value={h.projectTitle} onChange={(e) => handleItemChange(hackathons, setHackathons, idx, "projectTitle", e.target.value)} />
+                            </div>
+                          </div>
+                          <div className="form-row two-col" style={{ marginBottom: "16px" }}>
+                            <div className="form-row">
+                              <label>Semester</label>
+                              <select value={h.semester || "Sem 4"} onChange={(e) => handleItemChange(hackathons, setHackathons, idx, "semester", e.target.value)}>
+                                <option value="Sem 1">Semester 1</option>
+                                <option value="Sem 2">Semester 2</option>
+                                <option value="Sem 3">Semester 3</option>
+                                <option value="Sem 4">Semester 4</option>
+                                <option value="Sem 5">Semester 5</option>
+                                <option value="Sem 6">Semester 6</option>
+                                <option value="Sem 7">Semester 7</option>
+                                <option value="Sem 8">Semester 8</option>
+                              </select>
+                            </div>
+                            <div className="form-row">
+                              <label>PDF Attachment Link (URL)</label>
+                              <input type="text" value={h.pdfUrl || ""} onChange={(e) => handleItemChange(hackathons, setHackathons, idx, "pdfUrl", e.target.value)} placeholder="https://example.com/certificate.pdf" />
                             </div>
                           </div>
                           <button onClick={() => removeItem(hackathons, setHackathons, idx)} className="btn-secondary" style={{ color: "var(--red)", borderColor: "rgba(255,107,107,0.2)", background: "rgba(255,107,107,0.05)", cursor: "pointer", width: "100%", padding: "10px" }}>
@@ -372,7 +462,7 @@ export default function StudentWizard({ user, token, onLogout }) {
                     <div className="form-step">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                         <h3 style={{ fontSize: "14px", color: "var(--purple)" }}>Research Papers</h3>
-                        <button className="btn-primary" onClick={() => addItem(research, setResearch, { title: "", journal: "", status: "Published", link: "" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
+                        <button className="btn-primary" onClick={() => addItem(research, setResearch, { title: "", journal: "", status: "Published", link: "", pdfUrl: "", semester: "Sem 4" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
                           <i className="fas fa-plus" style={{ marginRight: "6px" }}></i> Add Paper
                         </button>
                       </div>
@@ -396,6 +486,25 @@ export default function StudentWizard({ user, token, onLogout }) {
                               </select>
                             </div>
                           </div>
+                          <div className="form-row two-col" style={{ marginBottom: "12px" }}>
+                            <div className="form-row">
+                              <label>Semester</label>
+                              <select value={r.semester || "Sem 4"} onChange={(e) => handleItemChange(research, setResearch, idx, "semester", e.target.value)}>
+                                <option value="Sem 1">Semester 1</option>
+                                <option value="Sem 2">Semester 2</option>
+                                <option value="Sem 3">Semester 3</option>
+                                <option value="Sem 4">Semester 4</option>
+                                <option value="Sem 5">Semester 5</option>
+                                <option value="Sem 6">Semester 6</option>
+                                <option value="Sem 7">Semester 7</option>
+                                <option value="Sem 8">Semester 8</option>
+                              </select>
+                            </div>
+                            <div className="form-row">
+                              <label>PDF Attachment Link (URL)</label>
+                              <input type="text" value={r.pdfUrl || ""} onChange={(e) => handleItemChange(research, setResearch, idx, "pdfUrl", e.target.value)} placeholder="https://example.com/paper.pdf" />
+                            </div>
+                          </div>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div className="form-row" style={{ width: "80%" }}>
                               <label>DOI Link / Website URL</label>
@@ -415,7 +524,7 @@ export default function StudentWizard({ user, token, onLogout }) {
                     <div className="form-step">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                         <h3 style={{ fontSize: "14px", color: "var(--purple)" }}>Internships</h3>
-                        <button className="btn-primary" onClick={() => addItem(internships, setInternships, { company: "", role: "", duration: "", description: "" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
+                        <button className="btn-primary" onClick={() => addItem(internships, setInternships, { company: "", role: "", duration: "", description: "", pdfUrl: "", semester: "Sem 4" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
                           <i className="fas fa-plus" style={{ marginRight: "6px" }}></i> Add Internship
                         </button>
                       </div>
@@ -431,18 +540,37 @@ export default function StudentWizard({ user, token, onLogout }) {
                               <input type="text" value={i.role} onChange={(e) => handleItemChange(internships, setInternships, idx, "role", e.target.value)} />
                             </div>
                           </div>
-                          <div className="form-row" style={{ marginBottom: "12px" }}>
-                            <label>Duration / Dates</label>
-                            <input type="text" value={i.duration} onChange={(e) => handleItemChange(internships, setInternships, idx, "duration", e.target.value)} placeholder="e.g. 2 Months (May - Jul 2025)" />
+                          <div className="form-row two-col" style={{ marginBottom: "12px" }}>
+                            <div className="form-row">
+                              <label>Duration / Dates</label>
+                              <input type="text" value={i.duration} onChange={(e) => handleItemChange(internships, setInternships, idx, "duration", e.target.value)} placeholder="e.g. 2 Months (May - Jul 2025)" />
+                            </div>
+                            <div className="form-row">
+                              <label>Semester</label>
+                              <select value={i.semester || "Sem 4"} onChange={(e) => handleItemChange(internships, setInternships, idx, "semester", e.target.value)}>
+                                <option value="Sem 1">Semester 1</option>
+                                <option value="Sem 2">Semester 2</option>
+                                <option value="Sem 3">Semester 3</option>
+                                <option value="Sem 4">Semester 4</option>
+                                <option value="Sem 5">Semester 5</option>
+                                <option value="Sem 6">Semester 6</option>
+                                <option value="Sem 7">Semester 7</option>
+                                <option value="Sem 8">Semester 8</option>
+                              </select>
+                            </div>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div className="form-row" style={{ width: "80%" }}>
-                              <label>Job Description</label>
-                              <input type="text" value={i.description} onChange={(e) => handleItemChange(internships, setInternships, idx, "description", e.target.value)} />
+                              <label>Job Description / PDF Link</label>
+                              <input type="text" value={i.description} onChange={(e) => handleItemChange(internships, setInternships, idx, "description", e.target.value)} placeholder="Description..." />
                             </div>
                             <button onClick={() => removeItem(internships, setInternships, idx)} style={{ background: "rgba(255,107,107,0.15)", border: "none", color: "var(--red)", width: "40px", height: "40px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "18px" }}>
                               <i className="fas fa-trash"></i>
                             </button>
+                          </div>
+                          <div className="form-row" style={{ marginTop: "12px" }}>
+                            <label>PDF Certificate URL</label>
+                            <input type="text" value={i.pdfUrl || ""} onChange={(e) => handleItemChange(internships, setInternships, idx, "pdfUrl", e.target.value)} placeholder="https://example.com/internship-cert.pdf" />
                           </div>
                         </div>
                       ))}
@@ -454,7 +582,7 @@ export default function StudentWizard({ user, token, onLogout }) {
                     <div className="form-step">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                         <h3 style={{ fontSize: "14px", color: "var(--purple)" }}>Certificates</h3>
-                        <button className="btn-primary" onClick={() => addItem(certificates, setCertificates, { name: "", issuer: "", date: "" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
+                        <button className="btn-primary" onClick={() => addItem(certificates, setCertificates, { title: "", issuer: "", credentialId: "", credentialUrl: "", pdfUrl: "", semester: "Sem 4" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
                           <i className="fas fa-plus" style={{ marginRight: "6px" }}></i> Add Certificate
                         </button>
                       </div>
@@ -462,7 +590,7 @@ export default function StudentWizard({ user, token, onLogout }) {
                         <div key={idx} style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "16px", marginBottom: "16px" }}>
                           <div className="form-row" style={{ marginBottom: "12px" }}>
                             <label>Certificate Name</label>
-                            <input type="text" value={c.name} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "name", e.target.value)} />
+                            <input type="text" value={c.title} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "title", e.target.value)} />
                           </div>
                           <div className="form-row two-col" style={{ marginBottom: "12px" }}>
                             <div className="form-row">
@@ -470,9 +598,32 @@ export default function StudentWizard({ user, token, onLogout }) {
                               <input type="text" value={c.issuer} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "issuer", e.target.value)} placeholder="e.g. Coursera, AWS" />
                             </div>
                             <div className="form-row">
-                              <label>Date Issued</label>
-                              <input type="text" value={c.date} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "date", e.target.value)} placeholder="e.g. Jan 2025" />
+                              <label>Credential ID</label>
+                              <input type="text" value={c.credentialId} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "credentialId", e.target.value)} placeholder="ID number" />
                             </div>
+                          </div>
+                          <div className="form-row two-col" style={{ marginBottom: "12px" }}>
+                            <div className="form-row">
+                              <label>Semester</label>
+                              <select value={c.semester || "Sem 4"} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "semester", e.target.value)}>
+                                <option value="Sem 1">Semester 1</option>
+                                <option value="Sem 2">Semester 2</option>
+                                <option value="Sem 3">Semester 3</option>
+                                <option value="Sem 4">Semester 4</option>
+                                <option value="Sem 5">Semester 5</option>
+                                <option value="Sem 6">Semester 6</option>
+                                <option value="Sem 7">Semester 7</option>
+                                <option value="Sem 8">Semester 8</option>
+                              </select>
+                            </div>
+                            <div className="form-row">
+                              <label>PDF Document Link (URL)</label>
+                              <input type="text" value={c.pdfUrl || ""} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "pdfUrl", e.target.value)} placeholder="https://example.com/certificate.pdf" />
+                            </div>
+                          </div>
+                          <div className="form-row" style={{ marginBottom: "12px" }}>
+                            <label>Verification/Credential URL</label>
+                            <input type="text" value={c.credentialUrl} onChange={(e) => handleItemChange(certificates, setCertificates, idx, "credentialUrl", e.target.value)} placeholder="https://..." />
                           </div>
                           <button onClick={() => removeItem(certificates, setCertificates, idx)} className="btn-secondary" style={{ color: "var(--red)", borderColor: "rgba(255,107,107,0.2)", background: "rgba(255,107,107,0.05)", cursor: "pointer", width: "100%", padding: "10px" }}>
                             <i className="fas fa-trash" style={{ marginRight: "6px" }}></i> Remove Certificate Card
@@ -487,7 +638,7 @@ export default function StudentWizard({ user, token, onLogout }) {
                     <div className="form-step">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                         <h3 style={{ fontSize: "14px", color: "var(--purple)" }}>Extracurricular Achievements</h3>
-                        <button className="btn-primary" onClick={() => addItem(achievements, setAchievements, { title: "", description: "", date: "" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
+                        <button className="btn-primary" onClick={() => addItem(achievements, setAchievements, { title: "", description: "", date: "", pdfUrl: "", semester: "Sem 4" })} style={{ padding: "8px 12px", fontSize: "12px" }}>
                           <i className="fas fa-plus" style={{ marginRight: "6px" }}></i> Add Achievement
                         </button>
                       </div>
@@ -500,7 +651,26 @@ export default function StudentWizard({ user, token, onLogout }) {
                             </div>
                             <div className="form-row">
                               <label>Date Achieved</label>
-                              <input type="text" value={a.date} onChange={(e) => handleItemChange(achievements, setAchievements, idx, "date", e.target.value)} />
+                              <input type="text" value={a.date} onChange={(e) => handleItemChange(achievements, setAchievements, idx, "date", e.target.value)} placeholder="YYYY-MM-DD" />
+                            </div>
+                          </div>
+                          <div className="form-row two-col" style={{ marginBottom: "12px" }}>
+                            <div className="form-row">
+                              <label>Semester</label>
+                              <select value={a.semester || "Sem 4"} onChange={(e) => handleItemChange(achievements, setAchievements, idx, "semester", e.target.value)}>
+                                <option value="Sem 1">Semester 1</option>
+                                <option value="Sem 2">Semester 2</option>
+                                <option value="Sem 3">Semester 3</option>
+                                <option value="Sem 4">Semester 4</option>
+                                <option value="Sem 5">Semester 5</option>
+                                <option value="Sem 6">Semester 6</option>
+                                <option value="Sem 7">Semester 7</option>
+                                <option value="Sem 8">Semester 8</option>
+                              </select>
+                            </div>
+                            <div className="form-row">
+                              <label>PDF Document Link (URL)</label>
+                              <input type="text" value={a.pdfUrl || ""} onChange={(e) => handleItemChange(achievements, setAchievements, idx, "pdfUrl", e.target.value)} placeholder="https://example.com/certificate.pdf" />
                             </div>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -530,6 +700,9 @@ export default function StudentWizard({ user, token, onLogout }) {
                         </div>
                         <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "14px" }}>
                           <strong>Academics:</strong> {academics.cgpa > 0 ? "Complete" : "Incomplete"}
+                        </div>
+                        <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "14px" }}>
+                          <strong>Startup Profile:</strong> {startupInfo.hasStartup ? `Active (${startupInfo.startupName})` : "None"}
                         </div>
                         <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "8px", padding: "14px" }}>
                           <strong>Projects Count:</strong> {projects.length}
@@ -578,25 +751,22 @@ export default function StudentWizard({ user, token, onLogout }) {
                       style={{
                         padding: "10px 14px",
                         borderRadius: "var(--radius-sm)",
+                        background: isActive ? "rgba(56,189,248,0.15)" : "transparent",
+                        color: isActive ? "#38bdf8" : "var(--text)",
                         cursor: "pointer",
-                        fontSize: "13px",
                         display: "flex",
-                        alignItems: "center",
                         justifyContent: "space-between",
-                        background: isActive 
-                          ? "linear-gradient(135deg, var(--purple), var(--cyan))" 
-                          : "rgba(255,255,255,0.03)",
-                        color: isActive ? "#fff" : "var(--text2)",
-                        fontWeight: isActive ? "600" : "500",
-                        border: isActive ? "none" : "1px solid var(--border)",
+                        alignItems: "center",
+                        fontSize: "14px",
+                        border: isActive ? "1px solid rgba(56,189,248,0.3)" : "1px solid transparent",
                         transition: "all 0.2s"
                       }}
                     >
-                      <span>
-                        <i className={step.icon} style={{ marginRight: "10px" }}></i>
-                        {step.title}
-                      </span>
-                      {isComplete && !isActive && <span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span>}
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <i className={step.icon} style={{ width: "16px", textAlign: "center" }}></i>
+                        <span>{step.title}</span>
+                      </div>
+                      {isComplete && <i className="fas fa-check-circle" style={{ color: "var(--green)", fontSize: "12px" }}></i>}
                     </div>
                   );
                 })}
@@ -604,6 +774,7 @@ export default function StudentWizard({ user, token, onLogout }) {
             </div>
 
           </div>
+
         </main>
       </div>
     </div>

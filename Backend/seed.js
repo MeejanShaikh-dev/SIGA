@@ -45,25 +45,41 @@ const portfoliosData = [
       semester: "Sem 4"
     },
     projects: [
-      { title: "AI Face Recognition System", techStack: "Python, OpenCV, TensorFlow", description: "Real-time face detection and matching with 98% accuracy.", githubLink: "github.com/rahul/face-rec", liveUrl: "face-rec.demo" },
-      { title: "IoT Smart Dustbin", techStack: "Arduino, Firebase, C++", description: "Automatically detects waste level and notifies municipal server.", githubLink: "github.com/rahul/smart-bin", liveUrl: "" }
+      { title: "AI Face Recognition System", techStack: "Python, OpenCV, TensorFlow", description: "Real-time face detection and matching with 98% accuracy.", githubLink: "github.com/rahul/face-rec", liveUrl: "face-rec.demo", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 3", verificationStatus: "Approved" },
+      { title: "IoT Smart Dustbin", techStack: "Arduino, Firebase, C++", description: "Automatically detects waste level and notifies municipal server.", githubLink: "github.com/rahul/smart-bin", liveUrl: "", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 4", verificationStatus: "Pending" }
     ],
     hackathons: [
-      { name: "Smart India Hackathon 2025", role: "Team Leader", achievement: "First Runner-up", projectTitle: "Disaster Alert System" }
+      { name: "Smart India Hackathon 2025", role: "Team Leader", achievement: "First Runner-up", projectTitle: "Disaster Alert System", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 3", verificationStatus: "Approved" }
     ],
     research: [
-      { title: "Deep Learning in Smart Agriculture", journal: "IEEE Access", status: "Published", link: "doi.org/10.1109/agriculture" }
+      { title: "Deep Learning in Smart Agriculture", journal: "IEEE Access", status: "Published", link: "doi.org/10.1109/agriculture", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 4", verificationStatus: "Approved" }
     ],
     internships: [
-      { company: "TCS Research", role: "ML Intern", duration: "2 Months", description: "Worked on time-series anomaly detection algorithms." }
+      { company: "TCS Research", role: "ML Intern", duration: "2 Months", description: "Worked on time-series anomaly detection algorithms.", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 3", verificationStatus: "Approved" }
     ],
     certificates: [
-      { title: "AWS Certified Cloud Practitioner", issuer: "Amazon Web Services", credentialId: "AWS-CCP-1234", credentialUrl: "aws.verify/1234" },
-      { title: "TensorFlow Developer Certificate", issuer: "Google", credentialId: "TF-GOOG-8890", credentialUrl: "google.verify/tf" }
+      { title: "AWS Certified Cloud Practitioner", issuer: "Amazon Web Services", credentialId: "AWS-CCP-1234", credentialUrl: "aws.verify/1234", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 2", verificationStatus: "Approved" },
+      { title: "TensorFlow Developer Certificate", issuer: "Google", credentialId: "TF-GOOG-8890", credentialUrl: "google.verify/tf", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 3", verificationStatus: "Approved" }
     ],
+    achievements: [
+      { title: "Dean's List Award", description: "Achieved highest SGPA in department during Sem 2.", date: new Date("2025-06-01"), pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 2", verificationStatus: "Approved" }
+    ],
+    startupInfo: {
+      hasStartup: true,
+      startupName: "Smart AgriTech",
+      startupIdea: "Using Deep learning and computer vision to detect plant diseases early and suggest automated organic cures.",
+      startupStage: "MVP",
+      startupCategory: "Agritech"
+    },
+    placementInfo: {
+      placementStatus: "Placed",
+      placementCompany: "TCS Research",
+      placementPackage: 12.5,
+      placementRole: "Junior Research Scientist"
+    },
     innovationScore: 92,
-    radarMetrics: { research: 74, technical: 85, entrepreneurship: 67, leadership: 79, collaboration: 91, creativity: 82 },
-    semesterScores: { s1: 38, s2: 52, s3: 64, s4: 82, s5: 89, s6: 96 }
+    radarMetrics: { research: 74, technical: 85, entrepreneurship: 88, leadership: 79, collaboration: 91, creativity: 82 },
+    semesterScores: { s1: 38, s2: 52, s3: 68, s4: 82, s5: 89, s6: 96 }
   },
   {
     prn: "241002",
@@ -71,18 +87,32 @@ const portfoliosData = [
     personalInfo: { email: "priya.nair@jspm.edu.in", division: "AI & ML - Div A" },
     academics: { sgpa: 9.4, cgpa: 9.2, attendance: 92, backlogs: 0, creditsEarned: 96, creditsRemaining: 44, year: "Third Year", semester: "Sem 4" },
     projects: [
-      { title: "E-Commerce Recommendation Engine", techStack: "Python, Pandas, FastAPI", description: "Graph database recommendation backend scaling up to 10k items.", githubLink: "github.com/priya/rec-engine" }
+      { title: "E-Commerce Recommendation Engine", techStack: "Python, Pandas, FastAPI", description: "Graph database recommendation backend scaling up to 10k items.", githubLink: "github.com/priya/rec-engine", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 4", verificationStatus: "Approved" }
     ],
     hackathons: [
-      { name: "National Level Hackfest 2025", role: "ML Engineer", achievement: "Winner", projectTitle: "Medical Imaging Diagnostic Tool" }
+      { name: "National Level Hackfest 2025", role: "ML Engineer", achievement: "Winner", projectTitle: "Medical Imaging Diagnostic Tool", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 3", verificationStatus: "Approved" }
     ],
     research: [
-      { title: "Saliency Mapping in Brain MRI", journal: "Springer BioMed", status: "Published", link: "doi.org/10.1007/brain-mri" }
+      { title: "Saliency Mapping in Brain MRI", journal: "Springer BioMed", status: "Published", link: "doi.org/10.1007/brain-mri", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 4", verificationStatus: "Approved" }
     ],
     internships: [],
     certificates: [
-      { title: "Google Professional Data Engineer", issuer: "Google Cloud", credentialId: "GCP-PDE-990" }
+      { title: "Google Professional Data Engineer", issuer: "Google Cloud", credentialId: "GCP-PDE-990", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 2", verificationStatus: "Approved" }
     ],
+    achievements: [],
+    startupInfo: {
+      hasStartup: false,
+      startupName: "",
+      startupIdea: "",
+      startupStage: "",
+      startupCategory: ""
+    },
+    placementInfo: {
+      placementStatus: "Placed",
+      placementCompany: "Google Cloud",
+      placementPackage: 24,
+      placementRole: "Associate Cloud Engineer"
+    },
     innovationScore: 91,
     radarMetrics: { research: 82, technical: 92, entrepreneurship: 55, leadership: 85, collaboration: 88, creativity: 80 },
     semesterScores: { s1: 45, s2: 60, s3: 75, s4: 88, s5: 92, s6: 95 }
@@ -93,15 +123,29 @@ const portfoliosData = [
     personalInfo: { email: "amit.desai@jspm.edu.in", division: "AI & ML - Div B" },
     academics: { sgpa: 8.6, cgpa: 8.5, attendance: 82, backlogs: 0, creditsEarned: 96, creditsRemaining: 44, year: "Third Year", semester: "Sem 4" },
     projects: [
-      { title: "Autonomous Indoor Robot Navigation", techStack: "ROS, Python, LiDAR", description: "SLAM based localization and mapping package for low-cost bots." }
+      { title: "Autonomous Indoor Robot Navigation", techStack: "ROS, Python, LiDAR", description: "SLAM based localization and mapping package for low-cost bots.", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", semester: "Sem 3", verificationStatus: "Approved" }
     ],
     hackathons: [],
     research: [],
     internships: [],
     certificates: [],
-    innovationScore: 89,
+    achievements: [],
+    startupInfo: {
+      hasStartup: false,
+      startupName: "",
+      startupIdea: "",
+      startupStage: "",
+      startupCategory: ""
+    },
+    placementInfo: {
+      placementStatus: "Unplaced",
+      placementCompany: "",
+      placementPackage: 0,
+      placementRole: ""
+    },
+    innovationScore: 78,
     radarMetrics: { research: 40, technical: 88, entrepreneurship: 60, leadership: 75, collaboration: 88, creativity: 70 },
-    semesterScores: { s1: 30, s2: 40, s3: 65, s4: 80, s5: 85, s6: 90 }
+    semesterScores: { s1: 30, s2: 40, s3: 65, s4: 78, s5: 82, s6: 88 }
   }
 ];
 

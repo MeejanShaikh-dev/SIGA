@@ -33,6 +33,8 @@ const PortfolioSchema = new mongoose.Schema(
         description: { type: String, default: "" },
         githubLink: { type: String, default: "" },
         liveUrl: { type: String, default: "" },
+        pdfUrl: { type: String, default: "" },
+        semester: { type: String, default: "Sem 4" },
         verificationStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
       },
     ],
@@ -42,6 +44,8 @@ const PortfolioSchema = new mongoose.Schema(
         role: { type: String, default: "" },
         achievement: { type: String, default: "" },
         projectTitle: { type: String, default: "" },
+        pdfUrl: { type: String, default: "" },
+        semester: { type: String, default: "Sem 4" },
         verificationStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
       },
     ],
@@ -51,6 +55,8 @@ const PortfolioSchema = new mongoose.Schema(
         journal: { type: String, default: "" },
         status: { type: String, default: "" }, // e.g. Published, Under Review
         link: { type: String, default: "" },
+        pdfUrl: { type: String, default: "" },
+        semester: { type: String, default: "Sem 4" },
         verificationStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
       },
     ],
@@ -60,6 +66,8 @@ const PortfolioSchema = new mongoose.Schema(
         role: { type: String, default: "" },
         duration: { type: String, default: "" },
         description: { type: String, default: "" },
+        pdfUrl: { type: String, default: "" },
+        semester: { type: String, default: "Sem 4" },
         verificationStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
       },
     ],
@@ -69,6 +77,8 @@ const PortfolioSchema = new mongoose.Schema(
         issuer: { type: String, default: "" },
         credentialId: { type: String, default: "" },
         credentialUrl: { type: String, default: "" },
+        pdfUrl: { type: String, default: "" },
+        semester: { type: String, default: "Sem 4" },
         verificationStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
       },
     ],
@@ -77,9 +87,24 @@ const PortfolioSchema = new mongoose.Schema(
         title: { type: String, default: "" },
         description: { type: String, default: "" },
         date: { type: Date },
+        pdfUrl: { type: String, default: "" },
+        semester: { type: String, default: "Sem 4" },
         verificationStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
       },
     ],
+    startupInfo: {
+      hasStartup: { type: Boolean, default: false },
+      startupName: { type: String, default: "" },
+      startupIdea: { type: String, default: "" },
+      startupStage: { type: String, default: "" }, // Ideation, MVP, Incubation, Scaling
+      startupCategory: { type: String, default: "" }
+    },
+    placementInfo: {
+      placementStatus: { type: String, enum: ["Placed", "Unplaced", "Higher Studies", "Entrepreneurship"], default: "Unplaced" },
+      placementCompany: { type: String, default: "" },
+      placementPackage: { type: Number, default: 0 }, // in LPA
+      placementRole: { type: String, default: "" }
+    },
     innovationScore: { type: Number, default: 0 },
     radarMetrics: {
       research: { type: Number, default: 0 },
